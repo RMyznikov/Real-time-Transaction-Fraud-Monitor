@@ -1,0 +1,1 @@
+"""Transaction event producer."""

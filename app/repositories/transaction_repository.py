@@ -1,0 +1,1 @@
+"""Transaction persistence operations."""
