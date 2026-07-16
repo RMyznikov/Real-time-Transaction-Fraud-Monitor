@@ -1,9 +1,9 @@
 from datetime import datetime
 
+from app.consts.consts import MAX_TRANSACTION_AMOUNT
 from app.models.fraud_alert import FraudAlert
 from app.models.transaction import Transaction
 
-MAX_TRANSACTION_AMOUNT = 10000
 
 class TransactionValidator:
     def check_high_amount(self, transaction: Transaction) -> FraudAlert | None:

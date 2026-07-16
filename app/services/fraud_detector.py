@@ -1,5 +1,4 @@
 """Fraud detection service."""
-from typing import List
 
 from app.models.fraud_alert import FraudAlert
 from app.models.transaction import Transaction
