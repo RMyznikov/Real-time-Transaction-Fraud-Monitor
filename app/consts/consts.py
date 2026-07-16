@@ -1,1 +1,4 @@
-MAX_TRANSACTION_AMOUNT = 10000
+from decimal import Decimal
+
+
+MAX_TRANSACTION_AMOUNT = Decimal("10000")

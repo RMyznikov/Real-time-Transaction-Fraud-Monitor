@@ -1,1 +1,1 @@
-# Add project dependencies here.
+pytest>=8.0,<9.0
