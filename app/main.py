@@ -1,8 +1,7 @@
-from db.database import test_queries
-
-
 def main() -> None:
-    test_queries()
+    """Application entry point."""
+    pass
+
 
 if __name__ == "__main__":
     main()
