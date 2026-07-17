@@ -1,7 +1,6 @@
 """Transaction domain model."""
 
 from dataclasses import dataclass
-from datetime import datetime
 from decimal import Decimal
 
 
@@ -14,4 +13,4 @@ class Transaction:
     amount: Decimal
     currency: str
     country: str
-    timestamp: datetime
+    timestamp: str
