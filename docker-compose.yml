@@ -1,1 +1,21 @@
-services: {}
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: real_time_transaction_monitoring
+    environment:
+      POSTGRES_USER: kafka_today
+      POSTGRES_DB: fraud_monitoring
+      POSTGRES_PASSWORD: kafka_today
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U kafka_today -d fraud_monitoring" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+
+volumes:
+  postgres_data:
