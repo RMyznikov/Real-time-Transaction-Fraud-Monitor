@@ -1,12 +1,12 @@
 """Kafka producer for detected fraud alerts."""
 
-import json
 import os
-from dataclasses import asdict
 
 from confluent_kafka import KafkaException, Producer
 from dotenv import load_dotenv
 
+from app.enums import KafkaTopic
+from app.mappers import fraud_alert_to_json
 from app.models.fraud_alert import FraudAlert
 
 load_dotenv()
@@ -17,7 +17,10 @@ class KafkaFraudAlertProducer:
 
     def __init__(self, producer: Producer | None = None) -> None:
         self.kafka_url = os.getenv("KAFKA_URL")
-        self.topic = os.getenv("KAFKA_FRAUD_ALERT_TOPIC", "fraud-alerts")
+        self.topic = os.getenv(
+            "KAFKA_FRAUD_ALERT_TOPIC",
+            KafkaTopic.FRAUD_ALERTS.value,
+        )
 
         if producer is None and not self.kafka_url:
             raise ValueError("KAFKA_URL environment variable is required")
@@ -34,10 +37,7 @@ class KafkaFraudAlertProducer:
         self.producer.produce(
             topic=self.topic,
             key=fraud_alert.account_id,
-            value=json.dumps(
-                asdict(fraud_alert),
-                default=str,
-            ),
+            value=fraud_alert_to_json(fraud_alert),
             on_delivery=self._on_delivery,
         )
 

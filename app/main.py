@@ -1,15 +1,17 @@
-from app.consumer.kafka_fraud_consumer import KafkaFraudConsumer
-from app.producer.kafka_transaction_producer import KafkaTransactionProducer
+from app.enums import EventType, KafkaTopic
+from app.mappers.transaction_mapper import transaction_to_payload
 from app.producer.transaction_producer import TransactionProducer
+from app.repositories.outbox_repository import OutboxRepository
 from app.services.transaction_processing_service import TransactionProcessingService
+from app.workers.outbox_worker import OutboxWorker
+from db.database import get_connection
 
 
 class FraudMonitoringApp:
     def __init__(self) -> None:
         self.t_producer = TransactionProducer()
         self.t_processor = TransactionProcessingService()
-        self.kafka_t_producer = KafkaTransactionProducer()
-        self.kafka_fraud_consumer = KafkaFraudConsumer()
+        self.outbox_worker = OutboxWorker()
 
 
     def localFraudMonitoring(self) -> None:
@@ -20,12 +22,18 @@ class FraudMonitoringApp:
     def main(self) -> None:
         transactions = self.t_producer.produce_transactions(10, 10, 10)
 
-        for transaction in transactions:
-            self.kafka_t_producer.send(transaction)
+        # The main process writes events to PostgreSQL; only the worker uses Kafka.
+        with get_connection() as connection:
+            for transaction in transactions:
+                OutboxRepository.create(
+                    connection=connection,
+                    topic=KafkaTopic.TRANSACTIONS,
+                    event_type=EventType.TRANSACTION_CREATED,
+                    event_key=transaction.account_id,
+                    payload=transaction_to_payload(transaction),
+                )
 
-        self.kafka_t_producer.flush()
-
-        self.kafka_fraud_consumer.consume()
+        self.outbox_worker.run()
 
 
 

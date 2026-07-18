@@ -1,6 +1,9 @@
-from app.models.transaction import Transaction
+from app.enums import EventType, KafkaTopic
+from app.mappers.fraud_alert_mapper import fraud_alert_to_payload
 from app.models.fraud_alert import FraudAlert
-from app.repositories import transaction_repository, alert_repository
+from app.models.transaction import Transaction
+from app.repositories import alert_repository, transaction_repository
+from app.repositories.outbox_repository import OutboxRepository
 from app.services.fraud_detector import FraudDetector
 from db.database import get_connection
 
@@ -17,7 +20,17 @@ class TransactionProcessingService:
             transaction_repository.create(connection, transaction)
             alert_repository.create_many(connection, fraud_alerts)
 
-        # The consumer can keep or publish the alerts created for this transaction.
+            # Business rows and outgoing events commit in the same transaction.
+            for fraud_alert in fraud_alerts:
+                OutboxRepository.create(
+                    connection=connection,
+                    topic=KafkaTopic.FRAUD_ALERTS,
+                    event_type=EventType.FRAUD_ALERT_CREATED,
+                    event_key=fraud_alert.account_id,
+                    payload=fraud_alert_to_payload(fraud_alert),
+                )
+
+        # The caller can inspect alerts; Kafka publication belongs to OutboxWorker.
         return fraud_alerts
 
     def process_transactions(

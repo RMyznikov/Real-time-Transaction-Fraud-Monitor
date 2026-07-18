@@ -31,12 +31,7 @@ def test_process_message_deserializes_and_returns_fraud_alerts() -> None:
     processing_service = Mock()
     processing_service.process_transaction.return_value = [alert]
     kafka_consumer = Mock()
-    fraud_alert_producer = Mock()
-    consumer = KafkaFraudConsumer(
-        processing_service,
-        kafka_consumer,
-        fraud_alert_producer,
-    )
+    consumer = KafkaFraudConsumer(processing_service, kafka_consumer)
 
     alerts = consumer.process_message(make_message_value())
 
@@ -44,8 +39,6 @@ def test_process_message_deserializes_and_returns_fraud_alerts() -> None:
     assert transaction.amount == Decimal("15000.00")
     assert transaction.timestamp == datetime(2026, 7, 18, 10, tzinfo=timezone.utc)
     assert alerts == [alert]
-    fraud_alert_producer.send.assert_called_once_with(alert)
-    fraud_alert_producer.flush.assert_called_once_with()
 
 
 def test_consume_once_stores_alert_and_commits_message() -> None:
@@ -57,12 +50,7 @@ def test_consume_once_stores_alert_and_commits_message() -> None:
     message.value.return_value = make_message_value()
     kafka_consumer = Mock()
     kafka_consumer.poll.return_value = message
-    fraud_alert_producer = Mock()
-    consumer = KafkaFraudConsumer(
-        processing_service,
-        kafka_consumer,
-        fraud_alert_producer,
-    )
+    consumer = KafkaFraudConsumer(processing_service, kafka_consumer)
 
     consumed = consumer.consume_once()
 
@@ -81,16 +69,10 @@ def test_consume_once_skips_invalid_message_and_commits_offset() -> None:
     message.value.return_value = b"not-json"
     kafka_consumer = Mock()
     kafka_consumer.poll.return_value = message
-    fraud_alert_producer = Mock()
-    consumer = KafkaFraudConsumer(
-        processing_service,
-        kafka_consumer,
-        fraud_alert_producer,
-    )
+    consumer = KafkaFraudConsumer(processing_service, kafka_consumer)
 
     consumed = consumer.consume_once()
 
     assert consumed is True
     processing_service.process_transaction.assert_not_called()
-    fraud_alert_producer.send.assert_not_called()
     kafka_consumer.commit.assert_called_once()

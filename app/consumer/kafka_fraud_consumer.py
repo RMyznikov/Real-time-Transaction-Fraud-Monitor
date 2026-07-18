@@ -8,9 +8,9 @@ from decimal import InvalidOperation
 from confluent_kafka import Consumer, KafkaError, KafkaException
 from dotenv import load_dotenv
 
+from app.enums import KafkaTopic
 from app.mappers.transaction_mapper import transaction_from_json
 from app.models.fraud_alert import FraudAlert
-from app.producer.kafka_fraud_alert_producer import KafkaFraudAlertProducer
 from app.services.transaction_processing_service import TransactionProcessingService
 
 load_dotenv()
@@ -25,19 +25,15 @@ class KafkaFraudConsumer:
         self,
         processing_service: TransactionProcessingService | None = None,
         kafka_consumer: Consumer | None = None,
-        fraud_alert_producer: KafkaFraudAlertProducer | None = None,
     ) -> None:
         self.kafka_url = os.getenv("KAFKA_URL")
-        self.topic = os.getenv("KAFKA_TOPIC", "transactions")
+        self.topic = os.getenv("KAFKA_TOPIC", KafkaTopic.TRANSACTIONS.value)
         self.group_id = os.getenv("KAFKA_GROUP_ID", "fraud-monitor")
 
         if kafka_consumer is None and not self.kafka_url:
             raise ValueError("KAFKA_URL environment variable is required")
 
         self.processing_service = processing_service or TransactionProcessingService()
-        self.fraud_alert_producer = (
-            fraud_alert_producer or KafkaFraudAlertProducer()
-        )
         self.consumer = kafka_consumer or Consumer(
             {
                 "bootstrap.servers": self.kafka_url,
@@ -81,6 +77,7 @@ class KafkaFraudConsumer:
             raise KafkaException(message.error())
 
         try:
+            print(f"Event occurred with message: {message.value()}")
             fraud_alerts = self.process_message(message.value())
         except (
             UnicodeDecodeError,
@@ -102,17 +99,7 @@ class KafkaFraudConsumer:
     def process_message(self, value: bytes | str) -> list[FraudAlert]:
         """Convert one Kafka payload and persist its transaction and alerts."""
         transaction = transaction_from_json(value)
-        fraud_alerts = self.processing_service.process_transaction(transaction)
-
-        # Publish only alerts that were successfully persisted with the transaction.
-        for fraud_alert in fraud_alerts:
-            self.fraud_alert_producer.send(fraud_alert)
-
-        if fraud_alerts:
-            # Wait for Kafka delivery before committing the source message offset.
-            self.fraud_alert_producer.flush()
-
-        return fraud_alerts
+        return self.processing_service.process_transaction(transaction)
 
 
 if __name__ == "__main__":
