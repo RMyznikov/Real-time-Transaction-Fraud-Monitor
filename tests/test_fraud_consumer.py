@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from unittest.mock import Mock
 
+from confluent_kafka import KafkaError
+
 from app.consumer.kafka_fraud_consumer import KafkaFraudConsumer
 from app.models.fraud_alert import FraudAlert
 
@@ -76,3 +78,20 @@ def test_consume_once_skips_invalid_message_and_commits_offset() -> None:
     assert consumed is True
     processing_service.process_transaction.assert_not_called()
     kafka_consumer.commit.assert_called_once()
+
+
+def test_consume_once_waits_when_topic_metadata_is_not_ready() -> None:
+    processing_service = Mock()
+    error = Mock()
+    error.code.return_value = KafkaError.UNKNOWN_TOPIC_OR_PART
+    message = Mock()
+    message.error.return_value = error
+    kafka_consumer = Mock()
+    kafka_consumer.poll.return_value = message
+    consumer = KafkaFraudConsumer(processing_service, kafka_consumer)
+
+    consumed = consumer.consume_once()
+
+    assert consumed is False
+    processing_service.process_transaction.assert_not_called()
+    kafka_consumer.commit.assert_not_called()

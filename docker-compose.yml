@@ -26,17 +26,86 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 3
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:29092 --list" ]
+      interval: 5s
+      timeout: 10s
+      retries: 12
+      start_period: 10s
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
+  kafka-init:
+    image: apache/kafka:latest
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    volumes:
+      - ./scripts/create-kafka-topics.sh:/opt/fraud-monitoring/create-kafka-topics.sh:ro
+    command: [ "/bin/sh", "/opt/fraud-monitoring/create-kafka-topics.sh", "transactions", "fraud-alerts" ]
+    restart: "no"
+
+  outbox-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fraud-monitoring-app:local
+    command: [ "python", "-m", "app.workers.outbox_worker" ]
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: fraud_monitoring
+      DB_USER: kafka_today
+      DB_PASSWORD: kafka_today
+      KAFKA_URL: kafka:29092
+      OUTBOX_POLL_INTERVAL_SECONDS: 1
+      OUTBOX_BATCH_SIZE: 100
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  fraud-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fraud-monitoring-app:local
+    command: [ "python", "-m", "app.consumer.kafka_fraud_consumer" ]
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: fraud_monitoring
+      DB_USER: kafka_today
+      DB_PASSWORD: kafka_today
+      KAFKA_URL: kafka:29092
+      KAFKA_TOPIC: transactions
+      KAFKA_GROUP_ID: fraud-monitor
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
 
 volumes:
   postgres_data:
-  kafka-data:
+  kafka_data:

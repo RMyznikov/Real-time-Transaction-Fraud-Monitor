@@ -72,7 +72,12 @@ class KafkaFraudConsumer:
             return False
 
         if message.error():
-            if message.error().code() == KafkaError._PARTITION_EOF:
+            error_code = message.error().code()
+            if error_code == KafkaError._PARTITION_EOF:
+                return False
+            if error_code == KafkaError.UNKNOWN_TOPIC_OR_PART:
+                # Topic creation and metadata propagation can briefly race startup.
+                logger.warning("Kafka topic is not available yet: %s", self.topic)
                 return False
             raise KafkaException(message.error())
 
