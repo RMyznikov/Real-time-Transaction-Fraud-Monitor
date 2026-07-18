@@ -11,7 +11,6 @@ class FraudMonitoringApp:
     def __init__(self) -> None:
         self.t_producer = TransactionProducer()
         self.t_processor = TransactionProcessingService()
-        self.outbox_worker = OutboxWorker()
 
 
     def localFraudMonitoring(self) -> None:
@@ -20,7 +19,7 @@ class FraudMonitoringApp:
 
 
     def main(self) -> None:
-        transactions = self.t_producer.produce_transactions(10, 10, 10)
+        transactions = self.t_producer.produce_transactions(1200, 100, 100)
 
         # The main process writes events to PostgreSQL; only the worker uses Kafka.
         with get_connection() as connection:
@@ -32,9 +31,6 @@ class FraudMonitoringApp:
                     event_key=transaction.account_id,
                     payload=transaction_to_payload(transaction),
                 )
-
-        self.outbox_worker.run()
-
 
 
 if __name__ == "__main__":
