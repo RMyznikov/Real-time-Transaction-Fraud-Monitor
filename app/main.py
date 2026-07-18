@@ -4,12 +4,12 @@ from app.services.transaction_processing_service import TransactionProcessingSer
 
 class FraudMonitoringApp:
     def __init__(self) -> None:
-        self.tProducer = TransactionProducer()
-        self.tProcessor = TransactionProcessingService()
+        self.t_producer = TransactionProducer()
+        self.t_processor = TransactionProcessingService()
 
     def main(self) -> None:
-        transactions = self.tProducer.produce_transactions(10, 10, 10)
-        self.tProcessor.process_transactions(transactions)
+        transactions = self.t_producer.produce_transactions(10, 10, 10)
+        self.t_processor.process_transactions(transactions)
 
 
 if __name__ == "__main__":
