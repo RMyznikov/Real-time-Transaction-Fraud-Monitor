@@ -47,14 +47,10 @@ class TransactionValidator:
         )
 
     @staticmethod
-    def _validate_timestamp(value: str) -> None:
-        if not isinstance(value, str) or not value.strip():
-            raise ValueError("timestamp must not be empty")
+    def _validate_timestamp(value: datetime) -> None:
+        if not isinstance(value, datetime):
+            raise ValueError("timestamp must be datetime")
 
-        try:
-            parsed_timestamp = datetime.fromisoformat(value.replace("Z", "+00:00"))
-        except ValueError as error:
-            raise ValueError("timestamp must be a valid ISO 8601 value") from error
-
-        if parsed_timestamp.tzinfo is None or parsed_timestamp.utcoffset() is None:
+        # TIMESTAMPTZ represents an absolute moment, so a naive datetime is unsafe.
+        if value.tzinfo is None or value.utcoffset() is None:
             raise ValueError("timestamp must include timezone information")

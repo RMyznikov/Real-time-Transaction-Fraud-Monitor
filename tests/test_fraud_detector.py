@@ -1,4 +1,4 @@
-from datetime import timezone
+from datetime import datetime, timezone
 from decimal import Decimal
 
 from app.models.transaction import Transaction
@@ -12,7 +12,7 @@ def make_transaction(amount: str) -> Transaction:
         amount=Decimal(amount),
         currency="CAD",
         country="CA",
-        timestamp="2026-07-15T20:30:00Z",
+        timestamp=datetime(2026, 7, 15, 20, 30, tzinfo=timezone.utc),
     )
 
 

@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 
 import pytest
@@ -13,6 +14,8 @@ def test_produce_valid_transaction() -> None:
 
     TransactionValidator().validate(transaction)
     assert Decimal("0") < transaction.amount < MAX_TRANSACTION_AMOUNT
+    assert isinstance(transaction.timestamp, datetime)
+    assert transaction.timestamp.utcoffset() is not None
 
 
 def test_produce_invalid_transaction() -> None:

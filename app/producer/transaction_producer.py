@@ -98,7 +98,7 @@ class TransactionProducer:
             amount=amount,
             currency=currency,
             country=country,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(timezone.utc),
         )
 
     @staticmethod
