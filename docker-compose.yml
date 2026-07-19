@@ -62,7 +62,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: fraud-monitoring-app:local
+    image: ${APP_IMAGE:-fraud-monitoring-app:local}
     command: [ "python", "-m", "app.main" ]
     environment:
       DB_HOST: postgres
@@ -83,7 +83,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: fraud-monitoring-app:local
+    image: ${APP_IMAGE:-fraud-monitoring-app:local}
     command: [ "python", "-m", "app.workers.outbox_worker" ]
     environment:
       DB_HOST: postgres
@@ -109,7 +109,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: fraud-monitoring-app:local
+    image: ${APP_IMAGE:-fraud-monitoring-app:local}
     command: [ "python", "-m", "app.consumer.kafka_fraud_consumer" ]
     environment:
       DB_HOST: postgres
