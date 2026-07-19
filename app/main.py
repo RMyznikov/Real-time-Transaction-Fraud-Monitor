@@ -19,7 +19,7 @@ class FraudMonitoringApp:
 
 
     def main(self) -> None:
-        transactions = self.t_producer.produce_transactions(1200, 100, 100)
+        transactions = self.t_producer.produce_transactions(10000, 10000, 10000)
 
         # The main process writes events to PostgreSQL; only the worker uses Kafka.
         with get_connection() as connection:

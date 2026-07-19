@@ -58,6 +58,27 @@ services:
     command: [ "/bin/sh", "/opt/fraud-monitoring/create-kafka-topics.sh", "transactions", "fraud-alerts" ]
     restart: "no"
 
+  load-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fraud-monitoring-app:local
+    command: [ "python", "-m", "app.main" ]
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: fraud_monitoring
+      DB_USER: kafka_today
+      DB_PASSWORD: kafka_today
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    restart: "no"
+
   outbox-worker:
     build:
       context: .
