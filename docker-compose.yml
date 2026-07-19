@@ -80,6 +80,8 @@ services:
         condition: service_healthy
       kafka-init:
         condition: service_completed_successfully
+    deploy:
+      replicas: 3
     restart: unless-stopped
 
   fraud-consumer:
@@ -104,6 +106,8 @@ services:
         condition: service_healthy
       kafka-init:
         condition: service_completed_successfully
+    deploy:
+      replicas: 3
     restart: unless-stopped
 
 volumes:

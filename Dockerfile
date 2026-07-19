@@ -14,3 +14,6 @@ COPY --chown=appuser:appuser app ./app
 COPY --chown=appuser:appuser db ./db
 
 USER appuser
+
+# Clear the base image command; Docker Compose supplies the process command.
+CMD []
