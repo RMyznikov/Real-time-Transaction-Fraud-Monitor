@@ -1,0 +1,62 @@
+<section class="page-heading">
+  <div>
+    <p>LOAD GENERATOR</p>
+    <h1>Add transactions</h1>
+    <span>Create a controlled transaction batch and enqueue it through the event pipeline.</span>
+  </div>
+  <div class="heading-badge">Transactional outbox</div>
+</section>
+
+<div class="generator-layout">
+  <mat-card class="form-card" appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>Batch composition</mat-card-title>
+      <mat-card-subtitle>Choose how many events of each category to generate.</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="field-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Valid transactions</mat-label>
+            <input matInput type="number" min="0" max="100000" formControlName="valid_count" />
+            <mat-hint>Below the fraud threshold</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Invalid transactions</mat-label>
+            <input matInput type="number" min="0" max="100000" formControlName="invalid_count" />
+            <mat-hint>Zero-amount validation cases</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Fraud transactions</mat-label>
+            <input matInput type="number" min="0" max="100000" formControlName="fraud_count" />
+            <mat-hint>At or above the fraud threshold</mat-hint>
+          </mat-form-field>
+        </div>
+
+        @if (error()) { <div class="error-banner">{{ error() }}</div> }
+
+        <div class="form-actions">
+          <div>
+            <span>Total events</span>
+            <strong>{{ total.toLocaleString() }}</strong>
+          </div>
+          <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || submitting()">
+            @if (submitting()) { <mat-spinner diameter="18" /> } @else { Run generator }
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <aside class="flow-card">
+    <p>EVENT FLOW</p>
+    <div class="flow-step"><b>01</b><span><strong>Generate</strong>Typed transaction payloads</span></div>
+    <i></i>
+    <div class="flow-step"><b>02</b><span><strong>Enqueue</strong>PostgreSQL transactional outbox</span></div>
+    <i></i>
+    <div class="flow-step"><b>03</b><span><strong>Evaluate</strong>Kafka fraud detection pipeline</span></div>
+  </aside>
+</div>

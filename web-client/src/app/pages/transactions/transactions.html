@@ -1,0 +1,38 @@
+<section class="page-heading">
+  <div>
+    <p>TRANSACTION LEDGER</p>
+    <h1>View transactions</h1>
+    <span>Search and inspect every processed transaction in the monitoring pipeline.</span>
+  </div>
+  <div class="record-count"><strong>{{ total().toLocaleString() }}</strong><span>matching records</span></div>
+</section>
+
+<section class="table-shell">
+  <div class="table-toolbar">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Search all transaction fields</mat-label>
+      <input matInput [formControl]="searchControl" />
+    </mat-form-field>
+    <button mat-stroked-button type="button" (click)="load()">Refresh data</button>
+  </div>
+
+  @if (error()) { <div class="error-banner">{{ error() }}</div> }
+
+  <mtx-grid
+    [data]="data()"
+    [columns]="columns"
+    [length]="total()"
+    [loading]="loading()"
+    [pageOnFront]="false"
+    [pageIndex]="page() - 1"
+    [pageSize]="pageSize()"
+    [pageSizeOptions]="[20, 40, 80, 100]"
+    [showFirstLastButtons]="true"
+    [columnResizable]="true"
+    [columnHideable]="true"
+    [rowHover]="true"
+    [rowStriped]="true"
+    noResultText="No transactions match your search"
+    (page)="onPage($event)"
+  />
+</section>

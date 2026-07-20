@@ -1,0 +1,98 @@
+.shell {
+  height: 100vh;
+  background: #f3f5f8;
+}
+
+.sidebar {
+  width: 264px;
+  padding: 28px 18px 20px;
+  border-right: 0;
+  background: #101827;
+  color: #e7edf7;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px 30px;
+}
+
+.brand-mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4e7cff, #37c6ae);
+  color: white;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.brand strong,
+.brand span,
+.sidebar-status strong,
+.sidebar-status span {
+  display: block;
+}
+
+.brand strong { font-size: 16px; }
+.brand span { margin-top: 3px; color: #8592a8; font-size: 12px; }
+.nav-label { margin: 0 12px 10px; color: #627087; font-size: 10px; font-weight: 700; letter-spacing: .14em; }
+
+nav { display: grid; gap: 6px; }
+nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  color: #aeb9ca;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: .18s ease;
+}
+nav a:hover { background: #172338; color: white; }
+nav a.active { background: #20304a; color: white; box-shadow: inset 3px 0 #4e7cff; }
+.nav-icon { display: grid; width: 26px; height: 26px; place-items: center; border-radius: 7px; background: #28364b; font-weight: 800; }
+.nav-icon.alert { color: #ff9d9d; }
+
+.sidebar-status {
+  position: absolute;
+  right: 18px;
+  bottom: 20px;
+  left: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #26344a;
+  border-radius: 12px;
+  background: #141f31;
+}
+.status-dot { width: 9px; height: 9px; border-radius: 50%; background: #35c98d; box-shadow: 0 0 0 4px rgb(53 201 141 / 12%); }
+.sidebar-status strong { font-size: 12px; }
+.sidebar-status span { margin-top: 2px; color: #79869c; font-size: 11px; }
+
+.topbar {
+  height: 76px;
+  justify-content: space-between;
+  padding: 0 36px;
+  border-bottom: 1px solid #e2e6ed;
+  background: rgb(255 255 255 / 88%);
+}
+.eyebrow, .topbar-title { display: block; }
+.eyebrow { color: #8792a4; font-size: 9px; font-weight: 800; letter-spacing: .16em; }
+.topbar-title { margin-top: 2px; color: #192235; font-size: 16px; font-weight: 650; }
+.environment { display: flex; align-items: center; gap: 8px; color: #647084; font-size: 12px; }
+.environment span { width: 7px; height: 7px; border-radius: 50%; background: #35c98d; }
+.content { min-height: calc(100vh - 76px); padding: 34px 36px 48px; }
+
+@media (max-width: 860px) {
+  .sidebar { width: 210px; }
+  .content { padding: 24px 18px; }
+  .topbar { padding: 0 20px; }
+}

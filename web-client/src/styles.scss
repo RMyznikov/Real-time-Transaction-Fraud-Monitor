@@ -1,0 +1,59 @@
+@use '@angular/material' as mat;
+
+html {
+  @include mat.theme((
+    color: (primary: mat.$azure-palette, tertiary: mat.$cyan-palette),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; color: #283348; background: #f3f5f8; font-family: Inter, Roboto, "Segoe UI", Arial, sans-serif !important; }
+button, input { font: inherit; }
+
+.mat-mdc-button,
+.mat-mdc-card,
+.mat-mdc-card *,
+.mat-mdc-dialog-container,
+.mat-mdc-dialog-container *,
+.mat-mdc-form-field,
+.mat-mdc-form-field *,
+.mat-mdc-paginator,
+.mat-mdc-paginator *,
+.mat-mdc-table,
+.mat-mdc-table *,
+.mat-toolbar {
+  font-family: Inter, Roboto, "Segoe UI", Arial, sans-serif !important;
+}
+
+.page-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 0 27px;
+}
+.page-heading p { margin: 0 0 7px; color: #5d7bf1; font-size: 10px; font-weight: 800; letter-spacing: .14em; }
+.page-heading h1 { margin: 0; color: #182237; font-size: 30px; font-weight: 720; letter-spacing: -.025em; }
+.page-heading > div > span { display: block; margin-top: 7px; color: #7b8799; font-size: 13px; }
+.heading-badge { padding: 8px 12px; border: 1px solid #dce2ec; border-radius: 999px; background: white; color: #657187; font-size: 11px; }
+.record-count { display: flex; align-items: baseline; gap: 8px; padding: 10px 14px; border-radius: 10px; background: #e9efff; color: #345bd4; }
+.record-count.alert { background: #fff0ef; color: #c54f52; }
+.record-count strong { font-size: 18px; }
+.record-count span { font-size: 11px; }
+
+.table-shell { overflow: hidden; padding: 20px 20px 10px; border: 1px solid #e0e5ed; border-radius: 15px; background: white; box-shadow: 0 12px 34px rgb(25 34 53 / 5%); }
+.table-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.table-toolbar mat-form-field { width: min(440px, 100%); }
+.table-toolbar button { height: 40px; border-radius: 9px; }
+.error-banner { margin-bottom: 16px; padding: 12px 14px; border-radius: 8px; background: #fff0f0; color: #a32d38; font-size: 13px; }
+
+mtx-grid .mat-mdc-header-cell { color: #778399; font-size: 11px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
+mtx-grid .mat-mdc-cell { color: #3a465a; font-size: 12px; }
+
+@media (max-width: 760px) {
+  .page-heading { align-items: flex-start; flex-direction: column; }
+  .table-toolbar { align-items: stretch; flex-direction: column; }
+}

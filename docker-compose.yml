@@ -188,6 +188,18 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
 
+  web-client:
+    build:
+      context: ./web-client
+      dockerfile: Dockerfile
+    image: ${WEB_CLIENT_IMAGE:-fraud-monitoring-web-client:local}
+    ports:
+      - "4200:80"
+    depends_on:
+      web-server:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   kafka_data:

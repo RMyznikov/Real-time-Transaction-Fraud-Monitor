@@ -1,0 +1,46 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav class="sidebar" mode="side" opened>
+    <div class="brand">
+      <div class="brand-mark">FM</div>
+      <div>
+        <strong>Fraud Monitor</strong>
+        <span>Operations console</span>
+      </div>
+    </div>
+
+    <p class="nav-label">WORKSPACE</p>
+    <nav aria-label="Primary navigation">
+      <a routerLink="/transactions/new" routerLinkActive="active">
+        <span class="nav-icon">+</span>
+        <span>Add transactions</span>
+      </a>
+      <a routerLink="/transactions" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <span class="nav-icon">T</span>
+        <span>View transactions</span>
+      </a>
+      <a routerLink="/fraud-alerts" routerLinkActive="active">
+        <span class="nav-icon alert">!</span>
+        <span>Fraud alerts</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-status">
+      <span class="status-dot"></span>
+      <div>
+        <strong>API connected</strong>
+        <span>localhost:8080</span>
+      </div>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar class="topbar">
+      <div>
+        <span class="eyebrow">REAL-TIME MONITORING</span>
+        <span class="topbar-title">Transaction intelligence</span>
+      </div>
+      <div class="environment"><span></span> Local environment</div>
+    </mat-toolbar>
+    <main class="content"><router-outlet /></main>
+  </mat-sidenav-content>
+</mat-sidenav-container>
