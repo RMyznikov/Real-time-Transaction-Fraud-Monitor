@@ -71,6 +71,39 @@ def get_all(connection: psycopg.Connection) -> list[Transaction]:
     return [_to_transaction(row) for row in rows]
 
 
+def get_page(
+    connection: psycopg.Connection,
+    page: int = 1,
+    page_size: int = 40,
+    search: str | None = None,
+) -> tuple[list[Transaction], int]:
+    """Return one database-backed page and the total matching row count."""
+    search_pattern = f"%{search.strip().lower()}%" if search and search.strip() else None
+    where_sql = """
+        WHERE %s::text IS NULL
+           OR search_text LIKE %s
+    """
+    parameters = (search_pattern, search_pattern)
+
+    with connection.cursor() as cursor:
+        cursor.execute(f"SELECT COUNT(*) FROM transactions {where_sql}", parameters)
+        total = cursor.fetchone()[0]
+        cursor.execute(
+            f"""
+            SELECT transaction_id, account_id, amount, currency, country,
+                   transaction_time
+            FROM transactions
+            {where_sql}
+            ORDER BY transaction_time DESC, transaction_id
+            LIMIT %s OFFSET %s
+            """,
+            (*parameters, page_size, (page - 1) * page_size),
+        )
+        rows = cursor.fetchall()
+
+    return [_to_transaction(row) for row in rows], total
+
+
 def update(connection: psycopg.Connection, transaction: Transaction) -> bool:
     """Update a transaction and report whether a row was found."""
     with connection.cursor() as cursor:

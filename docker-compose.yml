@@ -17,6 +17,31 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
 
+  db-init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${APP_IMAGE:-fraud-monitoring-app:local}
+    command:
+      - python
+      - -c
+      - |
+        from pathlib import Path
+        from db.database import get_connection
+
+        with get_connection() as connection:
+            connection.execute(Path("/app/db/schema.sql").read_text())
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: fraud_monitoring
+      DB_USER: kafka_today
+      DB_PASSWORD: kafka_today
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
   kafka:
     image: apache/kafka:latest
     container_name: fraud_monitoring_kafka
@@ -73,6 +98,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
       kafka:
         condition: service_healthy
       kafka-init:
@@ -97,6 +124,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
       kafka:
         condition: service_healthy
       kafka-init:
@@ -123,12 +152,40 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
       kafka:
         condition: service_healthy
       kafka-init:
         condition: service_completed_successfully
     deploy:
       replicas: 3
+    restart: unless-stopped
+
+  web-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${APP_IMAGE:-fraud-monitoring-app:local}
+    command: [ "uvicorn", "app.web_server:app", "--host", "0.0.0.0", "--port", "8080" ]
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: fraud_monitoring
+      DB_USER: kafka_today
+      DB_PASSWORD: kafka_today
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     restart: unless-stopped
 
 volumes:

@@ -105,6 +105,38 @@ def get_all(connection: psycopg.Connection) -> list[FraudAlert]:
     return [_to_fraud_alert(row) for row in rows]
 
 
+def get_page(
+    connection: psycopg.Connection,
+    page: int = 1,
+    page_size: int = 40,
+    search: str | None = None,
+) -> tuple[list[FraudAlert], int]:
+    """Return one database-backed page and the total matching row count."""
+    search_pattern = f"%{search.strip().lower()}%" if search and search.strip() else None
+    where_sql = """
+        WHERE %s::text IS NULL
+           OR search_text LIKE %s
+    """
+    parameters = (search_pattern, search_pattern)
+
+    with connection.cursor() as cursor:
+        cursor.execute(f"SELECT COUNT(*) FROM fraud_alerts {where_sql}", parameters)
+        total = cursor.fetchone()[0]
+        cursor.execute(
+            f"""
+            SELECT transaction_id, account_id, rule, risk_score, created_at
+            FROM fraud_alerts
+            {where_sql}
+            ORDER BY created_at DESC, transaction_id, rule
+            LIMIT %s OFFSET %s
+            """,
+            (*parameters, page_size, (page - 1) * page_size),
+        )
+        rows = cursor.fetchall()
+
+    return [_to_fraud_alert(row) for row in rows], total
+
+
 def update(connection: psycopg.Connection, alert: FraudAlert) -> bool:
     """Update an alert and report whether a row was found."""
     with connection.cursor() as cursor:

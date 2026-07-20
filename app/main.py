@@ -3,7 +3,6 @@ from app.mappers.transaction_mapper import transaction_to_payload
 from app.producer.transaction_producer import TransactionProducer
 from app.repositories.outbox_repository import OutboxRepository
 from app.services.transaction_processing_service import TransactionProcessingService
-from app.workers.outbox_worker import OutboxWorker
 from db.database import get_connection
 
 
@@ -18,8 +17,18 @@ class FraudMonitoringApp:
         self.t_processor.process_transactions(transactions)
 
 
-    def main(self) -> None:
-        transactions = self.t_producer.produce_transactions(10000, 10000, 10000)
+    def enqueue_generated_transactions(
+        self,
+        valid_count: int = 10_000,
+        invalid_count: int = 10_000,
+        fraud_count: int = 10_000,
+    ) -> int:
+        """Generate transactions and atomically enqueue them in the outbox."""
+        transactions = self.t_producer.produce_transactions(
+            valid_count,
+            invalid_count,
+            fraud_count,
+        )
 
         # The main process writes events to PostgreSQL; only the worker uses Kafka.
         with get_connection() as connection:
@@ -31,6 +40,12 @@ class FraudMonitoringApp:
                     event_key=transaction.account_id,
                     payload=transaction_to_payload(transaction),
                 )
+
+        return len(transactions)
+
+
+    def main(self) -> None:
+        self.enqueue_generated_transactions()
 
 
 if __name__ == "__main__":
